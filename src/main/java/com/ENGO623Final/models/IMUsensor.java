@@ -1,6 +1,6 @@
 package com.ENGO623Final.models;
 
-public class IMUsensor {
+public class ImuSensor {
 
 	private double time;
 	private double accX;
@@ -9,38 +9,52 @@ public class IMUsensor {
 	private double gyroX;
 	private double gyroY;
 	private double gyroZ;
-	public IMUsensor(double[] data) {
+
+	public ImuSensor(double[] data) {
 		super();
 		this.time = data[0];
-		this.accX = data[1];
-		this.accY = data[2];
-		this.accZ = data[3];
-		this.gyroX =data[4];
-		this.gyroY =data[5];
-		this.gyroZ =data[6];
+		this.gyroX = data[1];
+		this.gyroY = data[2];
+		this.gyroZ = data[3];
+		this.accX = data[4];
+		this.accY = data[5];
+		this.accZ = data[6];
 	}
+
 	public double getTime() {
 		return time;
 	}
+
 	public double getAccX() {
 		return accX;
 	}
+
 	public double getAccY() {
 		return accY;
 	}
+
 	public double getAccZ() {
 		return accZ;
 	}
+
 	public double getGyroX() {
 		return gyroX;
 	}
+
 	public double getGyroY() {
 		return gyroY;
 	}
+
 	public double getGyroZ() {
 		return gyroZ;
 	}
-	
-	
-	
+
+	public double[] getAcc() {
+		return new double[] { accX, accY, accZ };
+	}
+
+	public double[] getGyro() {
+		return new double[] { gyroX, gyroY, gyroZ };
+	}
+
 }

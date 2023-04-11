@@ -28,6 +28,24 @@ public class State {
 		this.gyroBias[2] = biasGyroZ;
 		
 	}
+	
+	public State(State state) {
+		super();
+		this.p[0] = state.getP()[0];
+		this.p[1] = state.getP()[1];
+		this.p[2] = state.getP()[2];
+		this.v[0] = state.getV()[0];
+		this.v[1] = state.getV()[1];
+		this.v[2] = state.getV()[2];
+		this.dcm = new SimpleMatrix(state.getDcm());
+		this.accBias[0] = state.getAccBias()[0];    
+		this.accBias[1] = state.getAccBias()[1];    
+		this.accBias[2] = state.getAccBias()[2];    
+		this.gyroBias[0] = state.getGyroBias()[0];    
+		this.gyroBias[1] = state.getGyroBias()[1];    
+		this.gyroBias[2] = state.getGyroBias()[2];    
+		
+	}
 
 	public double[] getP() {
 		return p;

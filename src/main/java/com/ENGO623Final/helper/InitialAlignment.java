@@ -5,14 +5,15 @@ import java.util.stream.IntStream;
 
 import org.ejml.simple.SimpleMatrix;
 
+import com.ENGO623Final.Util.LatLonUtil;
 import com.ENGO623Final.Util.Rotation;
-import com.ENGO623Final.models.IMUsensor;
+import com.ENGO623Final.models.ImuSensor;
 
 public class InitialAlignment {
 
 	// Self-Alignment
 	// Refer Paul D. Groves Book
-	public static SimpleMatrix process(ArrayList<IMUsensor> dataList, int m)
+	public static SimpleMatrix process(ArrayList<ImuSensor> dataList, int m)
 	{
 		double[] avgAcc = new double[3];
 		double[] avgGyro = new double[3];
@@ -36,8 +37,13 @@ public class InitialAlignment {
 		double cos_yaw = (avgGyro[0]*Math.cos(pitch)) + (avgGyro[1]*Math.sin(roll)*Math.sin(pitch))+(avgGyro[2]*Math.cos(roll)*Math.sin(pitch));
 		double yaw = Math.atan2(sin_yaw, cos_yaw);
 		
-		SimpleMatrix dcm = new SimpleMatrix(Rotation.euler2dcm(new double[] {pitch,roll,yaw}));
-		dcm = Rotation.reorthonormDcm(dcm);
+		double g = LatLonUtil.getGravity(Math.toRadians(51.07995352), 1118.502);
+		double r = Math.signum(avgAcc[2])*Math.asin(avgAcc[1]/g);
+		double p = -Math.signum(avgAcc[2])*Math.asin(avgAcc[0]/g);
+		double y = Math.atan2(avgGyro[1],avgGyro[0]);
+		SimpleMatrix dcm = new SimpleMatrix(Rotation.euler2dcm(new double[] {roll,pitch,yaw}));
+		SimpleMatrix _dcm = new SimpleMatrix(Rotation.euler2dcm(new double[] {r,p,y}));
+		dcm = Rotation.reorthonormDcm(_dcm);
 		return dcm;
 	}
 	

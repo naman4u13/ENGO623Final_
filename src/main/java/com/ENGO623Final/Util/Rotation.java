@@ -15,9 +15,9 @@ public class Rotation {
 	}
 
 	public static double[][] euler2dcm(double[] euler) {
-		double yaw = euler[0];
+		double roll = euler[0];
 		double pitch = euler[1];
-		double roll = euler[2];
+		double yaw = euler[2];
 
 		double[][] dcm = new double[3][3];
 		double cp = Math.cos(pitch);
