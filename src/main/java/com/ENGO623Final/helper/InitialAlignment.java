@@ -43,7 +43,7 @@ public class InitialAlignment {
 		double y = Math.atan2(avgGyro[1],avgGyro[0]);
 		SimpleMatrix dcm = new SimpleMatrix(Rotation.euler2dcm(new double[] {roll,pitch,yaw}));
 		SimpleMatrix _dcm = new SimpleMatrix(Rotation.euler2dcm(new double[] {r,p,y}));
-		dcm = Rotation.reorthonormDcm(_dcm);
+		dcm = Rotation.reorthonormDcm(dcm);
 		return dcm;
 	}
 	

@@ -1,5 +1,7 @@
 package com.ENGO623Final.constants;
 
+import com.ENGO623Final.Util.LatLonUtil;
+
 public class ImuParams {
 
 	private final static double degPerHr_2_radPerS = (Math.PI / (180 * 60 * 60));
@@ -12,12 +14,24 @@ public class ImuParams {
 	public static final double gyro_bias_instability = 0.015 * degPerHr_2_radPerS;
 	// in sec
 	public static final double gyro_corr_time = 1 * 60 * 60;
-	// in m/(s^2)
-	public static final double acc_bias = 3*1e-6;
 	// in m/(s^1.5)
 	public static final double VRW = 0.003/60;
-	// in m/(s^2)
-	public static final double acc_bias_instability = 50*1e-6;
 	// in sec
 	public static final double acc_corr_time = 1 * 60 * 60;
+	
+	// in m/(s^2)
+	public static double acc_bias(double lat,double alt)
+	{
+		double g = LatLonUtil.getGravity(lat,alt);
+		return 3*1e-6*g;
+	}
+	
+	// in m/(s^2)
+	public static double acc_bias_instability(double lat,double alt)
+	{
+		double g = LatLonUtil.getGravity(lat,alt);
+		return 50*1e-6*g;
+	}
+	
+	
 }

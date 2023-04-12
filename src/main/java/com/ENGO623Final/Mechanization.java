@@ -22,7 +22,8 @@ public class Mechanization {
 	 
 	public static TreeMap<Long,State> process(ArrayList<ImuSensor> dataList,SimpleMatrix dcm,double[] llh0)
 	{
-		State X = new State(llh0[0], llh0[1], llh0[2], 0,0,0, dcm, ImuParams.acc_bias, ImuParams.acc_bias, ImuParams.acc_bias, ImuParams.gyro_bias, ImuParams.gyro_bias, ImuParams.gyro_bias);
+		double acc_bias = ImuParams.acc_bias(llh0[0], llh0[2]);
+		State X = new State(llh0[0], llh0[1], llh0[2], 0,0,0, dcm, acc_bias, acc_bias, acc_bias, ImuParams.gyro_bias, ImuParams.gyro_bias, ImuParams.gyro_bias);
 		int n = dataList.size();
 		double prevTime = dataList.get(0).getTime();
 		TreeMap<Long,State> stateList = new TreeMap<Long,State>();
@@ -76,7 +77,10 @@ public class Mechanization {
 		// Specific-Force Frame Transformation
 		SimpleMatrix f_b_ib = new SimpleMatrix(3, 1, true, estAcc);
 		SimpleMatrix f_n_ib = (oldDcm.plus(newDcm)).scale(0.5).mult(f_b_ib);
-
+//		if(Math.abs(f_n_ib.get(2)-9.8)>0.5)
+//		{
+//			System.err.println();
+//		}
 		// Velocity Update
 		SimpleMatrix oldVel = new SimpleMatrix(3, 1, true, vel);
 		SimpleMatrix g_n_b = new SimpleMatrix(3, 1, true, new double[] { 0, 0, LatLonUtil.getGravity(lat, alt) });
