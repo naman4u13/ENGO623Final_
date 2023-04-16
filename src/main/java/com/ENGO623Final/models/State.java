@@ -52,11 +52,11 @@ public class State {
 	}
 
 	public void setP(double[] p) {
-		this.p = p;
+		this.p = new double[] {p[0],p[1],p[2]};
 	}
 
 	public double[] getV() {
-		return v;
+		return v = new double[] {v[0],v[1],v[2]};
 	}
 
 	public void setV(double[] v) {
@@ -68,7 +68,7 @@ public class State {
 	}
 
 	public void setDcm(SimpleMatrix dcm) {
-		this.dcm = dcm;
+		this.dcm = new SimpleMatrix(dcm);
 	}
 
 	public double[] getAccBias() {

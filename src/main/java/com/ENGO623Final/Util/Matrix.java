@@ -1,5 +1,7 @@
 package com.ENGO623Final.Util;
 
+import org.ejml.simple.SimpleMatrix;
+
 public class Matrix {
 	public static double[][] getSkewSymMat(double[] a) {
 		return getSkewSymMat(a, false);
@@ -15,5 +17,15 @@ public class Matrix {
 
 		}
 		return new double[][] { { 0, -b[2], b[1] }, { b[2], 0, -b[0] }, { -b[1], b[0], 0 } };
+	}
+	
+	public static double[][] matrix2Array(SimpleMatrix matrix) {
+		double[][] array = new double[matrix.numRows()][matrix.numCols()];
+		for (int r = 0; r < matrix.numRows(); r++) {
+			for (int c = 0; c < matrix.numCols(); c++) {
+				array[r][c] = matrix.get(r, c);
+			}
+		}
+		return array;
 	}
 }

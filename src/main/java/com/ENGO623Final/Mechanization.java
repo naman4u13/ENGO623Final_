@@ -20,7 +20,7 @@ import com.ENGO623Final.models.State;
 public class Mechanization {
 	
 	 
-	public static TreeMap<Long,State> process(ArrayList<ImuSensor> dataList,SimpleMatrix dcm,double[] llh0)
+	public static TreeMap<Long,State> process(ArrayList<ImuSensor> dataList,SimpleMatrix dcm,double[] llh0) throws Exception
 	{
 		double acc_bias = ImuParams.acc_bias(llh0[0], llh0[2]);
 		State X = new State(llh0[0], llh0[1], llh0[2], 0,0,0, dcm, acc_bias, acc_bias, acc_bias, ImuParams.gyro_bias, ImuParams.gyro_bias, ImuParams.gyro_bias);
@@ -40,18 +40,18 @@ public class Mechanization {
 		return stateList;
 	}
 	
-	private static double[][] predictTotalState(State X,ImuSensor imuSensor, double tau) {
+	private static double[][] predictTotalState(State X,ImuSensor imuSensor, double tau) throws Exception {
 
 		// Update Bias state
-		double[] accBias = Arrays.stream(X.getAccBias())
-				.map(i -> i * Math.exp(-tau / ImuParams.acc_corr_time)).toArray();
-		double[] gyroBias = Arrays.stream(X.getGyroBias())
-				.map(i -> i * Math.exp(-tau / ImuParams.gyro_corr_time)).toArray();
+		double[] accBias = Arrays.stream(X.getAccBias()).toArray();
+				//.map(i -> i * Math.exp(-tau / ImuParams.acc_corr_time)).toArray();
+		double[] gyroBias = Arrays.stream(X.getGyroBias()).toArray();
+				//.map(i -> i * Math.exp(-tau / ImuParams.gyro_corr_time)).toArray();
 
 		double[] obsAcc = imuSensor.getAcc();
-		double[] estAcc = IntStream.range(0, 3).mapToDouble(j -> obsAcc[j] - accBias[j]).toArray();
+		double[] estAcc = IntStream.range(0, 3).mapToDouble(j -> obsAcc[j] - (accBias[j])).toArray();
 		double[] obsGyro = imuSensor.getGyro();
-		double[] estGyro = IntStream.range(0, 3).mapToDouble(j -> obsGyro[j] - gyroBias[j]).toArray();
+		double[] estGyro = IntStream.range(0, 3).mapToDouble(j -> obsGyro[j] - (gyroBias[j])).toArray();
 
 		double lat = X.getP()[0];
 		double lon = X.getP()[1];

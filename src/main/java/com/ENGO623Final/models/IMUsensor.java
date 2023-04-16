@@ -13,12 +13,12 @@ public class ImuSensor {
 	public ImuSensor(double[] data) {
 		super();
 		this.time = data[0];
-		this.gyroX = data[2];
-		this.gyroY = data[1];
-		this.gyroZ = -data[3];
-		this.accX = data[5];
-		this.accY = data[4];
-		this.accZ = -data[6];
+		this.gyroX = data[1];
+		this.gyroY = data[2];
+		this.gyroZ = data[3];
+		this.accX = data[4];
+		this.accY = data[5];
+		this.accZ = data[6];
 	}
 
 	public double getTime() {

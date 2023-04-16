@@ -4,7 +4,7 @@ import com.ENGO623Final.Util.LatLonUtil;
 
 public class ImuParams {
 
-	private final static double degPerHr_2_radPerS = (Math.PI / (180 * 60 * 60));
+	public final static double degPerHr_2_radPerS = (Math.PI / (180 * 60 * 60));
 	private final static double degPerSqrHr_2_radPerSqrS = (Math.PI / (180 * 60));
 	// in rad/s
 	public static final double gyro_bias = 0.1 * degPerHr_2_radPerS;
