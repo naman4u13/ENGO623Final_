@@ -28,4 +28,19 @@ public class Matrix {
 		}
 		return array;
 	}
+	
+	// Function to find
+    // cross product of two vector array.
+    public static double[] crossProduct(double vect_A[], double vect_B[])
+ 
+    {
+    	double cross_P[] = new double[3];
+        cross_P[0] = vect_A[1] * vect_B[2]
+                     - vect_A[2] * vect_B[1];
+        cross_P[1] = vect_A[2] * vect_B[0]
+                     - vect_A[0] * vect_B[2];
+        cross_P[2] = vect_A[0] * vect_B[1]
+                     - vect_A[1] * vect_B[0];
+        return cross_P;
+    }
 }

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.TreeMap;
+import java.util.stream.IntStream;
 
 import org.ejml.simple.SimpleMatrix;
 
@@ -26,9 +27,12 @@ public class MainApp {
 			stream = new PrintStream(output);
 			System.setOut(stream);
 			ArrayList<ImuSensor> dataList = Parser.getData("project_data.BIN");
-			// Perform Self-Alignment assuming for first 100 recordings, the IMU remains static/stationary
-			SimpleMatrix dcm = InitialAlignment.process(dataList, 67*60);
 			double[] llh0 = new double[] {Math.toRadians(51.07995352),Math.toRadians(-114.13371127),1118.502};
+			// Perform Self-Alignment assuming for first 100 recordings, the IMU remains static/stationary
+			SimpleMatrix dcm = InitialAlignment.process2(dataList, 67*60*1,llh0);
+			double[] euler = Rotation.dcm2euler(Matrix.matrix2Array(dcm));
+			IntStream.range(0, 3).forEach(i->euler[i] = Math.toDegrees(euler[i]));
+			System.out.println();
 			TreeMap<Long,State> stateList = Mechanization.process(dataList, dcm, llh0);
 			GraphPlotter.graphIMU(dataList);
 			GraphPlotter.graphLLH(stateList);
