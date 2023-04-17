@@ -5,13 +5,13 @@ import java.util.stream.IntStream;
 import org.ejml.simple.SimpleMatrix;
 
 public class Rotation {
-	
+
 	public static double[] dcm2euler(double[][] dcm) {
 
 		double yaw = Math.atan2(dcm[0][1], dcm[0][0]);
 		double pitch = -Math.asin(dcm[0][2]);
 		double roll = Math.atan2(dcm[1][2], dcm[2][2]);
-		return new double[] { roll,pitch,yaw };
+		return new double[] { roll, pitch, yaw };
 	}
 
 	public static double[][] euler2dcm(double[] euler) {
@@ -38,6 +38,47 @@ public class Rotation {
 		dcm[2][2] = cr * cp;
 
 		return dcm;
+	}
+
+	public static SimpleMatrix dcm2quaternion(SimpleMatrix dcm) {
+
+		double q4 = 0.5 * Math.sqrt(1 + dcm.get(0, 0) + dcm.get(1, 1) + dcm.get(2, 2));
+		double q1 = (dcm.get(2, 1) - dcm.get(1, 2)) / (4 * q4);
+		double q2 = (dcm.get(0, 2) - dcm.get(2, 0)) / (4 * q4);
+		double q3 = (dcm.get(1, 0) - dcm.get(0, 1)) / (4 * q4);
+		double[] q = new double[] { q1, q2, q3, q4 };
+		return new SimpleMatrix(4, 1, true, q);
+	}
+
+	public static SimpleMatrix quaternion2dcm(SimpleMatrix q) {
+
+		double q1 = q.get(0);
+		double q2 = q.get(1);
+		double q3 = q.get(2);
+		double q4 = q.get(3);
+		double q1_2 = q1 * q1;
+		double q2_2 = q2 * q2;
+		double q3_2 = q3 * q3;
+		double q4_2 = q4 * q4;
+		double[][] dcm = new double[][] {
+				{ q4_2 + q1_2 - q2_2 - q3_2, 2 * ((q1 * q2) - (q3 * q4)), 2 * ((q1 * q3) + (q2 * q4)) },
+				{ 2 * ((q1 * q2) + (q3 * q4)), q4_2 - q1_2 + q2_2 - q3_2, 2 * ((q2 * q3) - (q1 * q4)) },
+				{ 2 * ((q1 * q3) - (q2 * q4)), 2 * ((q2 * q3) + (q1 * q4)), q4_2 - q1_2 - q2_2 + q3_2 } };
+		return new SimpleMatrix(dcm);
+	}
+	
+	public static double[] quaternion2euler(SimpleMatrix q) {
+		
+		double q1 = q.get(0);
+		double q2 = q.get(1);
+		double q3 = q.get(2);
+		double q4 = q.get(3);
+		double pitch = Math.asin(-2*((q1*q3)+(q4*q2)));
+		double roll = Math.atan2(2*((q2*q3)-(q4*q1)), 1-(2*((q1*q1)+(q2*q2))));
+		double yaw = Math.atan2(2*((q1*q2)-(q4*q3)), 1-(2*((q2*q2)+(q3*q3))));
+		
+		return new double[] {roll,pitch,yaw};
+		
 	}
 
 	// Perform reorthogonalization and renormalization of direction cosine matrix
@@ -79,7 +120,18 @@ public class Rotation {
 //			}
 //		}
 		return A_new;
-		
+
+	}
+	
+	public static SimpleMatrix reorthonormQuaternion(SimpleMatrix q)  {
+		double norm  = 0;
+		for(int i =0;i<4;i++)
+		{
+			norm += Math.pow(q.get(i),2);
+		}
+		norm = Math.sqrt(norm);
+		SimpleMatrix q_new = q.scale(1/norm);
+		return q_new;
 	}
 
 }

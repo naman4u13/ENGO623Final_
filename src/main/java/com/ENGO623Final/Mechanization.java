@@ -62,7 +62,7 @@ public class Mechanization {
 		double earthAngularRate = LatLonUtil.omega_ie;
 
 		// Attitude update
-		SimpleMatrix oldDcm = new SimpleMatrix(X.getDcm());
+		final SimpleMatrix oldDcm = new SimpleMatrix(X.getDcm());
 		SimpleMatrix omega_b_ib = new SimpleMatrix(Matrix.getSkewSymMat(estGyro));
 		double[] _omega_n_ie = new double[] { earthAngularRate * Math.cos(lat), 0, -earthAngularRate * Math.sin(lat) };
 		SimpleMatrix omega_n_ie = new SimpleMatrix(Matrix.getSkewSymMat(_omega_n_ie));
@@ -73,7 +73,7 @@ public class Mechanization {
 		SimpleMatrix newDcm = (oldDcm.mult(I.plus(omega_b_ib.scale(tau))))
 				.minus((omega_n_ie.plus(omega_n_en)).mult(oldDcm.scale(tau)));
 		newDcm = Rotation.reorthonormDcm(newDcm);
-
+		//newDcm = Rotation.quaternion2dcm(Rotation.reorthonormQuaternion(Rotation.dcm2quaternion(newDcm)));
 		// Specific-Force Frame Transformation
 		SimpleMatrix f_b_ib = new SimpleMatrix(3, 1, true, estAcc);
 		SimpleMatrix f_n_ib = (oldDcm.plus(newDcm)).scale(0.5).mult(f_b_ib);

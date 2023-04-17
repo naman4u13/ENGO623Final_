@@ -29,9 +29,14 @@ public class MainApp {
 			ArrayList<ImuSensor> dataList = Parser.getData("project_data.BIN");
 			double[] llh0 = new double[] {Math.toRadians(51.07995352),Math.toRadians(-114.13371127),1118.502};
 			// Perform Self-Alignment assuming for first 100 recordings, the IMU remains static/stationary
-			SimpleMatrix dcm = InitialAlignment.process2(dataList, 67*60*1,llh0);
-			double[] euler = Rotation.dcm2euler(Matrix.matrix2Array(dcm));
-			IntStream.range(0, 3).forEach(i->euler[i] = Math.toDegrees(euler[i]));
+			SimpleMatrix dcm = InitialAlignment.process2(dataList, 67*120,llh0);
+//			double[] euler = Rotation.dcm2euler(Matrix.matrix2Array(dcm));
+//			SimpleMatrix q = Rotation.dcm2quaternion(dcm);
+//			q = Rotation.reorthonormQuaternion(q);
+//			SimpleMatrix dcm2 = Rotation.quaternion2dcm(q);
+//			double[] euler2 = Rotation.dcm2euler(Matrix.matrix2Array(dcm2));
+//			IntStream.range(0, 3).forEach(i->euler[i] = Math.toDegrees(euler[i]));
+//			IntStream.range(0, 3).forEach(i->euler2[i] = Math.toDegrees(euler2[i]));
 			System.out.println();
 			TreeMap<Long,State> stateList = Mechanization.process(dataList, dcm, llh0);
 			GraphPlotter.graphIMU(dataList);

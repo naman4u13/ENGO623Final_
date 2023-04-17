@@ -52,6 +52,14 @@ public class LatLonUtil {
 				+ (a6 * (Math.pow(alt, 2)));
 		return g;
 	}
+	
+	public static double getGravity2(double lat, double alt) {
+		double g0 = (9.7803253359 * (1 + (0.001931853 * Math.pow(Math.sin(lat), 2))))
+				/ Math.sqrt(1 - Math.pow(e * Math.sin(lat), 2));
+		double g = g0
+				* (1 - ((2 * alt / a) * (1 + f + (Math.pow(omega_ie * a, 2) * b / mu))) + (3 * Math.pow(alt / a, 2)));
+		return g;
+	}
 
 	public static double[] lla2ecef(double[] lla, boolean isDegree) {
 

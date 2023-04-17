@@ -32,25 +32,25 @@ public class InitialAlignment {
 		double roll = Math.atan2(-avgAcc[1], -avgAcc[2]);
 
 		// Gyro-Compassing
-		double sin_yaw = (avgGyro[1] * Math.cos(roll)) - (avgGyro[2] * Math.sin(roll));
+		double sin_yaw = -(avgGyro[1] * Math.cos(roll)) + (avgGyro[2] * Math.sin(roll));
 		double cos_yaw = (avgGyro[0] * Math.cos(pitch)) + (avgGyro[1] * Math.sin(roll) * Math.sin(pitch))
 				+ (avgGyro[2] * Math.cos(roll) * Math.sin(pitch));
 		double yaw = Math.atan2(sin_yaw, cos_yaw);
-		double lat = llh0[0];
-		double alt = llh0[2];
-		double g = LatLonUtil.getGravity(lat, alt);
-		double r = Math.signum(avgAcc[2]) * Math.asin(avgAcc[1] / g);
-		double p = Math.asin(-avgAcc[0] / g);// -Math.signum(avgAcc[2])*Math.asin(avgAcc[0]/g);
-		double y = Math.atan2(-avgGyro[1], avgGyro[0]);
+//		double lat = llh0[0];
+//		double alt = llh0[2];
+//		double g = LatLonUtil.getGravity(lat, alt);
+//		double r = Math.signum(avgAcc[2]) * Math.asin(avgAcc[1] / g);
+//		double p = Math.asin(-avgAcc[0] / g);// -Math.signum(avgAcc[2])*Math.asin(avgAcc[0]/g);
+//		double y = Math.atan2(-avgGyro[1], avgGyro[0]);
 		// yaw = y;
 		SimpleMatrix dcm = new SimpleMatrix(Rotation.euler2dcm(new double[] { roll, pitch, yaw }));
-		SimpleMatrix _dcm = new SimpleMatrix(Rotation.euler2dcm(new double[] { r, p, y }));
+		//SimpleMatrix _dcm = new SimpleMatrix(Rotation.euler2dcm(new double[] { r, p, y }));
 		dcm = Rotation.reorthonormDcm(dcm);
 		double[] temp = Rotation.dcm2euler(Matrix.matrix2Array(dcm));
-		if ((Math.abs(temp[0] - roll) > 1e-6) || (Math.abs(temp[1] - pitch) > 1e-6)
-				|| (Math.abs(temp[2] - yaw) > 1e-6)) {
-			throw new Exception("Wrong DCM and Euler conversion");
-		}
+//		if ((Math.abs(temp[0] - roll) > 1e-6) || (Math.abs(temp[1] - pitch) > 1e-6)
+//				|| (Math.abs(temp[2] - yaw) > 1e-6)) {
+//			throw new Exception("Wrong DCM and Euler conversion");
+//		}
 		return dcm;
 	}
 
@@ -76,7 +76,7 @@ public class InitialAlignment {
 		double lat = llh0[0];
 		double alt = llh0[2];
 		double g = LatLonUtil.getGravity(lat, alt);
-		double w_ie = LatLonUtil.omega_ie;
+		final double w_ie = LatLonUtil.omega_ie;
 		double cosL = Math.cos(lat);
 		double sinL = Math.sin(lat);
 		double[][] _navFrame = new double[][] { { 0, 0, -g }, { w_ie * cosL, 0, -w_ie * sinL },
