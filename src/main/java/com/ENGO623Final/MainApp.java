@@ -13,6 +13,7 @@ import com.ENGO623Final.Util.LatLonUtil;
 import com.ENGO623Final.Util.Matrix;
 import com.ENGO623Final.Util.Parser;
 import com.ENGO623Final.Util.Rotation;
+import com.ENGO623Final.constants.ImuParams;
 import com.ENGO623Final.helper.InitialAlignment;
 import com.ENGO623Final.models.ImuSensor;
 import com.ENGO623Final.models.State;
@@ -26,22 +27,45 @@ public class MainApp {
 			PrintStream stream;
 			stream = new PrintStream(output);
 			System.setOut(stream);
+			// Parse the data file
 			ArrayList<ImuSensor> dataList = Parser.getData("project_data.BIN");
-			double[] llh0 = new double[] {Math.toRadians(51.07995352),Math.toRadians(-114.13371127),1118.502};
-			// Perform Self-Alignment assuming for first 100 recordings, the IMU remains static/stationary
-			SimpleMatrix dcm = InitialAlignment.process2(dataList, 67*120,llh0);
-//			double[] euler = Rotation.dcm2euler(Matrix.matrix2Array(dcm));
-//			SimpleMatrix q = Rotation.dcm2quaternion(dcm);
-//			q = Rotation.reorthonormQuaternion(q);
-//			SimpleMatrix dcm2 = Rotation.quaternion2dcm(q);
-//			double[] euler2 = Rotation.dcm2euler(Matrix.matrix2Array(dcm2));
-//			IntStream.range(0, 3).forEach(i->euler[i] = Math.toDegrees(euler[i]));
-//			IntStream.range(0, 3).forEach(i->euler2[i] = Math.toDegrees(euler2[i]));
-			System.out.println();
-			TreeMap<Long,State> stateList = Mechanization.process(dataList, dcm, llh0);
+			// Observed IMU measurement Sample Rate (in Hz)
+			int sampleRate = 67;
+			// Initial position as provided in the assignment
+			double[] llh0 = new double[] { Math.toRadians(51.07995352), Math.toRadians(-114.13371127), 1118.502 };
+			// Deterministic/Residual Bias
+			double acc_bias = ImuParams.acc_bias(llh0[0], llh0[2]);
+			double gyro_bias = ImuParams.gyro_bias;
+
+			// Removing Deterministic/Residual bias from the IMU data
+			for (ImuSensor imuSensor : dataList) {
+				double[] acc = imuSensor.getAcc();
+				double[] gyro = imuSensor.getGyro();
+				for (int j = 0; j < 3; j++) {
+					acc[j] -= acc_bias;
+					gyro[j] -= gyro_bias;
+				}
+				imuSensor.setAcc(acc);
+				imuSensor.setGyro(gyro);
+
+			}
+
+			// Perform Self-Alignment assuming for first 65 seconds, the IMU remains
+			// static/stationary
+			SimpleMatrix dcm = InitialAlignment.process(dataList, sampleRate * 65, llh0);
+
+			// Initiate the Mechanization module
+			TreeMap<Long, State> stateList = Mechanization.process(dataList, dcm, llh0);
+			// Plot Results
 			GraphPlotter.graphIMU(dataList);
 			GraphPlotter.graphLLH(stateList);
-			GraphPlotter.graphState(stateList, LatLonUtil.lla2ecef(llh0, false), Rotation.dcm2euler(Matrix.matrix2Array(dcm)));
+			GraphPlotter.graphState(stateList, LatLonUtil.lla2ecef(llh0, false),
+					Rotation.dcm2euler(Matrix.matrix2Array(dcm)));
+			
+			State lastSt = stateList.lastEntry().getValue();
+			System.out.println("Final Latitude, Longitude and Altitude in degrees and meter");
+			System.out.println(Math.toDegrees(lastSt.getP()[0])+"   "+Math.toDegrees(lastSt.getP()[1])+"   "+lastSt.getP()[2]);
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

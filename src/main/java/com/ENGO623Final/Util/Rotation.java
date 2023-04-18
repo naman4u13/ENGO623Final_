@@ -98,27 +98,6 @@ public class Rotation {
 			a_new[i] = a_new[i].transpose();
 		}
 		SimpleMatrix A_new = a_new[0].concatRows(a_new[1], a_new[2]);
-		SimpleMatrix check = A_new.mult(A_new.transpose());
-//		for(int i=0;i<3;i++)
-//		{
-//			for(int j=0;j<3;j++)
-//			{
-//				if(i==j)
-//				{
-//					if(Math.abs(check.get(i,j)-1)>1e-15)
-//					{
-//						throw new Exception("Reortho not working");
-//					}
-//				}
-//				else
-//				{
-//					if(Math.abs(check.get(i,j))>1e-15)
-//					{
-//						throw new Exception("Reortho not working");
-//					}
-//				}
-//			}
-//		}
 		return A_new;
 
 	}

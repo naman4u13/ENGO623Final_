@@ -6,12 +6,10 @@ public class State {
 	private double[] p = new double[3];
 	private double[] v = new double[3];
 	private SimpleMatrix dcm;
-	private double[] accBias = new double[3];
-	private double[] gyroBias = new double[3];
+	
 
 
-	public State(double pX, double pY, double pZ, double vX, double vY, double vZ, SimpleMatrix dcm, double biasAccX,
-			double biasAccY, double biasAccZ, double biasGyroX, double biasGyroY, double biasGyroZ) {
+	public State(double pX, double pY, double pZ, double vX, double vY, double vZ, SimpleMatrix dcm) {
 		super();
 		this.p[0] = pX;
 		this.p[1] = pY;
@@ -20,12 +18,7 @@ public class State {
 		this.v[1] = vY;
 		this.v[2] = vZ;
 		this.dcm = dcm;
-		this.accBias[0] = biasAccX;
-		this.accBias[1] = biasAccY;
-		this.accBias[2] = biasAccZ;
-		this.gyroBias[0] = biasGyroX;
-		this.gyroBias[1] = biasGyroY;
-		this.gyroBias[2] = biasGyroZ;
+		
 		
 	}
 	
@@ -38,12 +31,7 @@ public class State {
 		this.v[1] = state.getV()[1];
 		this.v[2] = state.getV()[2];
 		this.dcm = new SimpleMatrix(state.getDcm());
-		this.accBias[0] = state.getAccBias()[0];    
-		this.accBias[1] = state.getAccBias()[1];    
-		this.accBias[2] = state.getAccBias()[2];    
-		this.gyroBias[0] = state.getGyroBias()[0];    
-		this.gyroBias[1] = state.getGyroBias()[1];    
-		this.gyroBias[2] = state.getGyroBias()[2];    
+		
 		
 	}
 
@@ -71,21 +59,7 @@ public class State {
 		this.dcm = new SimpleMatrix(dcm);
 	}
 
-	public double[] getAccBias() {
-		return accBias;
-	}
 
-	public void setAccBias(double[] accBias) {
-		this.accBias = accBias;
-	}
-
-	public double[] getGyroBias() {
-		return gyroBias;
-	}
-
-	public void setGyroBias(double[] gyroBias) {
-		this.gyroBias = gyroBias;
-	}
 
 	
 }

@@ -56,5 +56,17 @@ public class ImuSensor {
 	public double[] getGyro() {
 		return new double[] { gyroX, gyroY, gyroZ };
 	}
+	
+	public void setAcc(double[] acc) {
+		accX = acc[0];
+		accY = acc[1];
+		accZ = acc[2];
+	}
+
+	public void setGyro(double[] gyro) {
+		gyroX = gyro[0];
+		gyroY = gyro[1];
+		gyroZ = gyro[2];
+	}
 
 }

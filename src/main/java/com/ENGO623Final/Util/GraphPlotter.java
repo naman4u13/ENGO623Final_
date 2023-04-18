@@ -23,7 +23,7 @@ public class GraphPlotter extends ApplicationFrame {
 
 		super(name);
 		String str = isAcc ? "(m/s^2)" : "(rad/s)";
-		JFreeChart chart = ChartFactory.createXYLineChart(name + str + " vs Time(ms)", "Time(ms)", name + str,
+		JFreeChart chart = ChartFactory.createXYLineChart(name + str + " vs Time(s)", "Time(s)", name + str,
 				createDataSetImu(dataList, isAcc));
 		final ChartPanel chartPanel = new ChartPanel(chart);
 		chartPanel.setPreferredSize(new java.awt.Dimension(560, 370));
@@ -34,11 +34,11 @@ public class GraphPlotter extends ApplicationFrame {
 
 	}
 
-	public GraphPlotter(ArrayList<Double> dataList, ArrayList<Long> timeList, String name, String title) {
+	public GraphPlotter(ArrayList<Double> dataList, ArrayList<Double> timeList, String name, String title) {
 
 		super(title);
 
-		JFreeChart chart = ChartFactory.createXYLineChart(name + " vs Time(ms)", "Time(ms)", name,
+		JFreeChart chart = ChartFactory.createXYLineChart(name + " vs Time(s)", "Time(s)", name,
 				createDataSetLLH(dataList, timeList, name));
 		final ChartPanel chartPanel = new ChartPanel(chart);
 		chartPanel.setPreferredSize(new java.awt.Dimension(560, 370));
@@ -67,7 +67,7 @@ public class GraphPlotter extends ApplicationFrame {
 		return dataset;
 	}
 
-	private XYDataset createDataSetLLH(ArrayList<Double> dataList, ArrayList<Long> timeList, String name) {
+	private XYDataset createDataSetLLH(ArrayList<Double> dataList, ArrayList<Double> timeList, String name) {
 		XYSeriesCollection dataset = new XYSeriesCollection();
 		final XYSeries series = new XYSeries(name);
 		int n = timeList.size();
@@ -94,11 +94,11 @@ public class GraphPlotter extends ApplicationFrame {
 
 	public static void graphLLH(TreeMap<Long, State> stateMap) {
 
-		ArrayList<Long> timeList = new ArrayList<Long>();
+		ArrayList<Double> timeList = new ArrayList<Double>();
 		ArrayList<Double>[] llhList = new ArrayList[3];
 		IntStream.range(0, 3).forEach(i -> llhList[i] = new ArrayList<Double>());
 		for (long t : stateMap.keySet()) {
-			timeList.add(t);
+			timeList.add(t*1.0/1000);
 			double[] llh = stateMap.get(t).getP();
 			llhList[0].add(Math.toDegrees(llh[0]));
 			llhList[1].add(Math.toDegrees(llh[1]));
@@ -116,26 +116,24 @@ public class GraphPlotter extends ApplicationFrame {
 
 	public static void graphState(TreeMap<Long, State> stateMap, double[] ecef0, double[] euler0) {
 
-		ArrayList<Long> timeList = new ArrayList<Long>();
+		ArrayList<Double> timeList = new ArrayList<Double>();
 		ArrayList<Double>[] posErrList = new ArrayList[3];
 		ArrayList<Double>[] velErrList = new ArrayList[3];
 		ArrayList<Double>[] attErrList = new ArrayList[3];
-		ArrayList<Double>[] biasList = new ArrayList[2];
 		for (int i = 0; i < 3; i++) {
 			posErrList[i] = new ArrayList<Double>();
 			velErrList[i] = new ArrayList<Double>();
 			attErrList[i] = new ArrayList<Double>();
 		}
-		IntStream.range(0, 2).forEach(i -> biasList[i] = new ArrayList<Double>());
 		double g = LatLonUtil.getGravity(Math.toRadians(51.07995352),1118.502);
 		for (long t : stateMap.keySet()) {
-			timeList.add(t);
+			timeList.add(t*1.0/1000);
 			State state = stateMap.get(t);
 			double[] llh = state.getP();
 			double[] vel = state.getV();
 			double[] att_euler = Rotation.dcm2euler(Matrix.matrix2Array(state.getDcm()));
 			
-			double[] bias = new double[] { state.getAccBias()[0]/(g*1e-6), state.getGyroBias()[0]*(1/ImuParams.degPerHr_2_radPerS) };
+		
 			double[] ecef = LatLonUtil.lla2ecef(llh, false);
 			double[] posErr = LatLonUtil.ecef2enu(ecef, ecef0, true);
 			double[] velErr = new double[] { vel[1], vel[0], -vel[2] };
@@ -145,8 +143,7 @@ public class GraphPlotter extends ApplicationFrame {
 				velErrList[i].add(velErr[i]);
 				attErrList[i].add(attErr[i]);
 			}
-			biasList[0].add(bias[0]);
-			biasList[1].add(bias[1]);
+		
 
 		}
 		String[] names = new String[] { "E(in m)", "N(in m)", "U(in m)" };
@@ -165,17 +162,17 @@ public class GraphPlotter extends ApplicationFrame {
 		}
 		names = new String[] { "Roll(in arcmin)", "Pitch(in arcmin)", "Yaw(in arcmin)" };
 		for (int i = 0; i < 3; i++) {
-			GraphPlotter chart = new GraphPlotter(attErrList[i], timeList, "Attitude Error(in Euler Angles) "+names[i], "Attitude Error(in Euler Angles) "+names[i]);
+			GraphPlotter chart = new GraphPlotter(attErrList[i], timeList, names[i], names[i]);
 			chart.pack();
 			RefineryUtilities.positionFrameRandomly(chart);
 			chart.setVisible(true);
 		}
-		names = new String[] { "Accelerometer Bias(in micro-g)", "Gyroscope Bias(in deg/hr)" };
-		for (int i = 0; i < 2; i++) {
-			GraphPlotter chart = new GraphPlotter(biasList[i], timeList, names[i], names[i]);
-			chart.pack();
-			RefineryUtilities.positionFrameRandomly(chart);
-			chart.setVisible(true);
-		}
+		
+		System.out.println("Final Position Error in ENU");
+		System.out.println(posErrList[0].get(posErrList[0].size()-1)+"   "+posErrList[1].get(posErrList[1].size()-1)+"   "+posErrList[2].get(posErrList[2].size()-1));
+		System.out.println("Final Velocity Error in ENU");
+		System.out.println(velErrList[0].get(velErrList[0].size()-1)+"   "+velErrList[1].get(velErrList[1].size()-1)+"   "+velErrList[2].get(velErrList[2].size()-1));
+		System.out.println("Final Attitude Error in arcmin");
+		System.out.println(attErrList[0].get(attErrList[0].size()-1)+"   "+attErrList[1].get(attErrList[1].size()-1)+"   "+attErrList[2].get(attErrList[2].size()-1));
 	}
 }
