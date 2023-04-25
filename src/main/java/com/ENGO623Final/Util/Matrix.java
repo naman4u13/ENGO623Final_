@@ -1,6 +1,7 @@
 package com.ENGO623Final.Util;
 
 import org.ejml.simple.SimpleMatrix;
+import org.jblas.DoubleMatrix;
 
 public class Matrix {
 	public static double[][] getSkewSymMat(double[] a) {
@@ -23,6 +24,16 @@ public class Matrix {
 		double[][] array = new double[matrix.numRows()][matrix.numCols()];
 		for (int r = 0; r < matrix.numRows(); r++) {
 			for (int c = 0; c < matrix.numCols(); c++) {
+				array[r][c] = matrix.get(r, c);
+			}
+		}
+		return array;
+	}
+	
+	public static double[][] matrix2Array(DoubleMatrix matrix) {
+		double[][] array = new double[matrix.rows][matrix.columns];
+		for (int r = 0; r < matrix.rows; r++) {
+			for (int c = 0; c < matrix.columns; c++) {
 				array[r][c] = matrix.get(r, c);
 			}
 		}

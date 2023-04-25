@@ -52,7 +52,7 @@ public class LatLonUtil {
 				+ (a6 * (Math.pow(alt, 2)));
 		return g;
 	}
-	
+
 	public static double getGravity2(double lat, double alt) {
 		double g0 = (9.7803253359 * (1 + (0.001931853 * Math.pow(Math.sin(lat), 2))))
 				/ Math.sqrt(1 - Math.pow(e * Math.sin(lat), 2));
@@ -86,6 +86,12 @@ public class LatLonUtil {
 
 	public static double[] ecef2lla(double[] ECEF) {
 
+		return ecef2lla(ECEF, true);
+
+	}
+
+	public static double[] ecef2lla(double[] ECEF, boolean inDeg) {
+
 		double x = ECEF[0];
 		double y = ECEF[1];
 		double z = ECEF[2];
@@ -115,10 +121,10 @@ public class LatLonUtil {
 		N = a / (Math.sqrt(1 - (Math.pow(e, 2) * Math.pow(Math.sin(lat), 2))));
 
 		height = (p * Math.cos(lat)) + ((z + (Math.pow(e, 2) * N * Math.sin(lat))) * Math.sin(lat)) - N;
-
-		lon = lon * 180 / Math.PI;
-
-		lat = lat * 180 / Math.PI;
+		if (inDeg) {
+			lon = lon * 180 / Math.PI;
+			lat = lat * 180 / Math.PI;
+		}
 		lla[0] = lat;
 		lla[1] = lon;
 		lla[2] = height;

@@ -40,7 +40,7 @@ public class InitialAlignment {
 		double cosL = Math.cos(lat);
 		double sinL = Math.sin(lat);
 		double[][] _navFrame = new double[][] { { 0, 0, -g }, { w_ie * cosL, 0, -w_ie * sinL },
-				{ 0, -g * w_ie * cosL, 0 } };
+			{ 0, -g * w_ie * cosL, 0 } };
 		/*double[][] _navFrameInv = new double[][] { { -Math.tan(lat) / g, 1 / (w_ie *cosL), 0 },
 				{ 0, 0, -1 / (g * w_ie *cosL) }, { -1 / g, 0, 0 } };*/
 		SimpleMatrix navFrameInv = new SimpleMatrix(_navFrame).invert();

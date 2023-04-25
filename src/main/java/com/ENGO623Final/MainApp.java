@@ -14,6 +14,7 @@ import com.ENGO623Final.Util.Matrix;
 import com.ENGO623Final.Util.Parser;
 import com.ENGO623Final.Util.Rotation;
 import com.ENGO623Final.constants.ImuParams;
+import com.ENGO623Final.estimation.KalmanFilter;
 import com.ENGO623Final.helper.InitialAlignment;
 import com.ENGO623Final.models.ImuSensor;
 import com.ENGO623Final.models.State;
@@ -23,7 +24,7 @@ public class MainApp {
 	public static void main(String args[]) {
 		try {
 			System.out.println("STARTED");
-			File output = new File("C:\\Users\\naman.agarwal\\Documents\\GNSS\\ENGO-623\\project\\result.txt");
+			File output = new File("C:\\Users\\naman.agarwal\\Documents\\GNSS\\ENGO-623\\project\\result3.txt");
 			PrintStream stream;
 			stream = new PrintStream(output);
 			System.setOut(stream);
@@ -37,7 +38,7 @@ public class MainApp {
 			double acc_bias = ImuParams.acc_bias(llh0[0], llh0[2]);
 			double gyro_bias = ImuParams.gyro_bias;
 
-			// Removing Deterministic/Residual bias from the IMU data
+			//Removing Deterministic/Residual bias from the IMU data
 			for (ImuSensor imuSensor : dataList) {
 				double[] acc = imuSensor.getAcc();
 				double[] gyro = imuSensor.getGyro();
@@ -52,10 +53,23 @@ public class MainApp {
 
 			// Perform Self-Alignment assuming for first 65 seconds, the IMU remains
 			// static/stationary
-			SimpleMatrix dcm = InitialAlignment.process(dataList, sampleRate * 65, llh0);
+			SimpleMatrix dcm = InitialAlignment.process(dataList, sampleRate * 90, llh0);
+			
+			for (ImuSensor imuSensor : dataList) {
+				double[] acc = imuSensor.getAcc();
+				double[] gyro = imuSensor.getGyro();
+				for (int j = 0; j < 3; j++) {
+					acc[j] += acc_bias;
+					gyro[j] += gyro_bias;
+				}
+				imuSensor.setAcc(acc);
+				imuSensor.setGyro(gyro);
+
+			}
 
 			// Initiate the Mechanization module
-			TreeMap<Long, State> stateList = Mechanization.process(dataList, dcm, llh0);
+			TreeMap<Long, State> stateList = KalmanFilter.process(dataList, dcm, llh0, sampleRate);
+			//Mechanization.process(dataList, dcm, llh0);
 			// Plot Results
 			GraphPlotter.graphIMU(dataList);
 			GraphPlotter.graphLLH(stateList);
