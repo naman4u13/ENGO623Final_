@@ -120,11 +120,13 @@ public class GraphPlotter extends ApplicationFrame {
 		ArrayList<Double>[] posErrList = new ArrayList[3];
 		ArrayList<Double>[] velErrList = new ArrayList[3];
 		ArrayList<Double>[] attErrList = new ArrayList[3];
+		ArrayList<Double>[] biasList = new ArrayList[2];
 		for (int i = 0; i < 3; i++) {
 			posErrList[i] = new ArrayList<Double>();
 			velErrList[i] = new ArrayList<Double>();
 			attErrList[i] = new ArrayList<Double>();
 		}
+		IntStream.range(0, 2).forEach(i -> biasList[i] = new ArrayList<Double>());
 		double g = LatLonUtil.getGravity(Math.toRadians(51.07995352),1118.502);
 		for (long t : stateMap.keySet()) {
 			timeList.add(t*1.0/1000);
@@ -138,12 +140,14 @@ public class GraphPlotter extends ApplicationFrame {
 			double[] posErr = LatLonUtil.ecef2enu(ecef, ecef0, true);
 			double[] velErr = new double[] { vel[1], vel[0], -vel[2] };
 			double[] attErr = IntStream.range(0, 3).mapToDouble(i -> Math.toDegrees(att_euler[i] - euler0[i])*60).toArray();
+			double[] bias = new double[] { state.getAccBias()[0]/(g*1e-6), state.getGyroBias()[0]*(1/ImuParams.degPerHr_2_radPerS) };
 			for (int i = 0; i < 3; i++) {
 				posErrList[i].add(posErr[i]);
 				velErrList[i].add(velErr[i]);
 				attErrList[i].add(attErr[i]);
 			}
-		
+			biasList[0].add(bias[0]);
+			biasList[1].add(bias[1]);
 
 		}
 		String[] names = new String[] { "E(in m)", "N(in m)", "U(in m)" };
@@ -163,6 +167,13 @@ public class GraphPlotter extends ApplicationFrame {
 		names = new String[] { "Roll(in arcmin)", "Pitch(in arcmin)", "Yaw(in arcmin)" };
 		for (int i = 0; i < 3; i++) {
 			GraphPlotter chart = new GraphPlotter(attErrList[i], timeList, names[i], names[i]);
+			chart.pack();
+			RefineryUtilities.positionFrameRandomly(chart);
+			chart.setVisible(true);
+		}
+		names = new String[] { "Accelerometer Bias(in micro-g)", "Gyroscope Bias(in deg/hr)" };
+		for (int i = 0; i < 2; i++) {
+			GraphPlotter chart = new GraphPlotter(biasList[i], timeList, names[i], names[i]);
 			chart.pack();
 			RefineryUtilities.positionFrameRandomly(chart);
 			chart.setVisible(true);

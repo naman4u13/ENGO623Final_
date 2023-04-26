@@ -18,24 +18,25 @@ import com.ENGO623Final.models.State;
 
 public class KalmanFilter {
 
-	private static double posCov= 0.01;
-	private static double velCov = 0.0001;
+	private static double posCov = 1e-10;
+	private static double velCov = 1e-10;
 
 	public static TreeMap<Long, State> process(ArrayList<ImuSensor> dataList, SimpleMatrix dcm0, double[] llh0,
 			int sampleRate) throws Exception {
 		double acc_bias = ImuParams.acc_bias(llh0[0], llh0[2]);
 		double acc_bias_instability = ImuParams.acc_bias_instability(llh0[0], llh0[2]);
-		double[] ecef0 = LatLonUtil.lla2ecef(llh0, false);
+
 		State X = new State(llh0[0], llh0[1], llh0[2], 0, 0, 0, dcm0, acc_bias, acc_bias, acc_bias, ImuParams.gyro_bias,
 				ImuParams.gyro_bias, ImuParams.gyro_bias);
 		double attCov = Math.pow(Math.toRadians(5), 2);
-		// Initial state covariance for Acc Bias is assumed to be 10 micro-g, where g = 10ms^-2
-		double accBiasCov = Math.pow(10*1e-6*10, 2);
+		// Initial state covariance for Acc Bias is assumed to be 10 micro-g, where g =
+		// 10ms^-2
+		double accBiasCov = Math.pow(10 * 1e-6 * 10, 2);
 		// Initial state covariance for Gyro Bias is assumed to be 1 deg/hr
-		double gyroBiasCov = Math.pow(10*ImuParams.degPerHr_2_radPerS, 2);
-		double[] p0 = new double[] { posCov,posCov,posCov, velCov, velCov,velCov,attCov, attCov, attCov, accBiasCov, accBiasCov,
-				accBiasCov, gyroBiasCov, gyroBiasCov, gyroBiasCov };
-	
+		double gyroBiasCov = Math.pow(10 * ImuParams.degPerHr_2_radPerS, 2);
+		double[] p0 = new double[] { posCov, posCov, posCov, velCov, velCov, velCov, attCov, attCov, attCov, accBiasCov,
+				accBiasCov, accBiasCov, gyroBiasCov, gyroBiasCov, gyroBiasCov };
+
 		SimpleMatrix P = new SimpleMatrix(15, 15);
 		for (int i = 0; i < 15; i++) {
 			P.set(i, i, p0[i]);
@@ -61,16 +62,16 @@ public class KalmanFilter {
 			// Total State Prediction or Mechanization
 			double[][] estInsObs = predictTotalState(X, imuSensor, tau);
 			SimpleMatrix[] discParam = getDiscreteParams(X, estInsObs[0], estInsObs[1], tau, q);
-			P = predictErrorState(X, P, discParam[0], discParam[1]);
-			
-			if (i % (sampleRate*1) == 0) {
-				P = update(X, P, ecef0);
+			P = predictErrorState(P, discParam[0], discParam[1]);
+
+			if (i % (sampleRate * 60) == 0) {
+				P = update(X, P, llh0);
 				count++;
 			}
 			prevTime = time;
 			stateList.put((long) (time * 1e3), new State(X));
 		}
-		System.err.println("UPDATES COUNT: "+ count);
+		System.err.println("UPDATES COUNT: " + count);
 		return stateList;
 	}
 
@@ -124,6 +125,8 @@ public class KalmanFilter {
 		double newLon = lon + ((tau / 2) * ((oldVel.get(1) / ((Rn + alt) * Math.cos(lat)))
 				+ (newVel.get(1) / ((newRn + newAlt) * Math.cos(newLat)))));
 
+		X.setAccBias(accBias);
+		X.setGyroBias(gyroBias);
 		X.setDcm(newDcm);
 		X.setV(new double[] { newVel.get(0), newVel.get(1), newVel.get(2) });
 		X.setP(new double[] { newLat, newLon, newAlt });
@@ -203,40 +206,38 @@ public class KalmanFilter {
 
 		SimpleMatrix Q = new SimpleMatrix(12, 12);
 		IntStream.range(0, 12).forEach(i -> Q.set(i, i, q[i]));
-		
-		
-		SimpleMatrix __A = ((F.scale(-1).concatColumns(G.mult(Q).mult(G.transpose()))).concatRows(new SimpleMatrix(15,15).concatColumns(F.transpose()))).scale(tau);
+
+		SimpleMatrix __A = ((F.scale(-1).concatColumns(G.mult(Q).mult(G.transpose())))
+				.concatRows(new SimpleMatrix(15, 15).concatColumns(F.transpose()))).scale(tau);
 		double[][] _A = Matrix.matrix2Array(__A);
 		DoubleMatrix A = new DoubleMatrix(_A);
 		DoubleMatrix _B = MatrixFunctions.expm(A);
 		SimpleMatrix B = new SimpleMatrix(Matrix.matrix2Array(_B));
-		SimpleMatrix phi2 = B.extractMatrix(B.numRows()-15, B.numRows(), B.numCols()-15, B.numCols()).transpose();
-		SimpleMatrix Qk2 = phi2.mult(B.extractMatrix(0, 15, B.numCols()-15, B.numCols()));
-		
-		
+		SimpleMatrix phi2 = B.extractMatrix(B.numRows() - 15, B.numRows(), B.numCols() - 15, B.numCols()).transpose();
+		SimpleMatrix Qk2 = phi2.mult(B.extractMatrix(0, 15, B.numCols() - 15, B.numCols()));
+
 		// First order approx of Qk
 		SimpleMatrix Qk = G.mult(Q).mult(G.transpose()).scale(tau);
 		return new SimpleMatrix[] { phi2, Qk2 };
 
 	}
 
-	private static SimpleMatrix predictErrorState(State X, SimpleMatrix P, SimpleMatrix phi, SimpleMatrix Qk) {
+	private static SimpleMatrix predictErrorState(SimpleMatrix P, SimpleMatrix phi, SimpleMatrix Qk) {
 		P = (phi.mult(P).mult(phi.transpose())).plus(Qk);
 		return P;
 	}
 
-	public static SimpleMatrix update(State X, SimpleMatrix P, double[] ecef0) throws Exception {
+	public static SimpleMatrix update(State X, SimpleMatrix P, double[] llh0) throws Exception {
 
 		double[] llh = X.getP();
 		double[] vel = X.getV();
 		SimpleMatrix dcm = X.getDcm();
-		double[] ecef = LatLonUtil.lla2ecef(llh, false);
 
 		SimpleMatrix H = null;
 		SimpleMatrix Z = null;
 		SimpleMatrix R = null;
 
-		double[] z = new double[] { ecef0[0] - ecef[0], ecef0[1] - ecef[1], ecef0[2] - ecef[2], 0 - vel[0], 0 - vel[1],
+		double[] z = new double[] { llh0[0] - llh[0], llh0[1] - llh[1], llh0[2] - llh[2], 0 - vel[0], 0 - vel[1],
 				0 - vel[2] };
 		R = new SimpleMatrix(6, 6);
 		for (int i = 0; i < 3; i++) {
@@ -264,23 +265,23 @@ public class KalmanFilter {
 		P = ((I.minus(KH)).mult(P).mult((I.minus(KH)).transpose())).plus(K.mult(R).mult(K.transpose()));
 
 		// Update Total State
-		ecef[0] += deltaX.get(0);
-		ecef[1] += deltaX.get(1);
-		ecef[2] += deltaX.get(2);
-		double[] _llh = LatLonUtil.ecef2lla(ecef, false);
-		X.setP(_llh);
+		llh[0] += deltaX.get(0);
+		llh[1] += deltaX.get(1);
+		llh[2] += deltaX.get(2);
+		X.setP(llh);
 		vel[0] += deltaX.get(3);
 		vel[1] += deltaX.get(4);
 		vel[2] += deltaX.get(5);
+		double[] ecef = LatLonUtil.lla2ecef(llh, false);
 		X.setV(LatLonUtil.ecef2ned(vel, ecef, false));
 		SimpleMatrix updateDcm = new SimpleMatrix(
 				Matrix.getSkewSymMat(new double[] { deltaX.get(6), deltaX.get(7), deltaX.get(8) }));
-		double[] updateEuler = new double[] {deltaX.get(6), deltaX.get(7), deltaX.get(8)};
+		double[] updateEuler = new double[] { deltaX.get(6), deltaX.get(7), deltaX.get(8) };
 		SimpleMatrix updateDcm2 = new SimpleMatrix(Rotation.euler2dcm(updateEuler));
 		updateDcm2 = Rotation.reorthonormDcm(updateDcm2);
-		//dcm = (SimpleMatrix.identity(3).minus(updateDcm)).mult(dcm);
+		// dcm = (SimpleMatrix.identity(3).minus(updateDcm)).mult(dcm);
 		dcm = updateDcm2.mult(dcm);
-		
+
 		dcm = Rotation.reorthonormDcm(dcm);
 		X.setDcm(dcm);
 		X.setAccBias(IntStream.range(0, 3).mapToDouble(i -> X.getAccBias()[i] + deltaX.get(9 + i)).toArray());

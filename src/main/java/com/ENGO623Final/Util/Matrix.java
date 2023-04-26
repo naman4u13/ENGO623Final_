@@ -40,6 +40,66 @@ public class Matrix {
 		return array;
 	}
 	
+	public static double[][] check(double[][] mat)
+	{
+		int r = mat.length;
+		int c = mat[0].length;
+		double[][] new_mat = new double[r][c];
+		for(int i=0;i<r;i++)
+		{
+			for(int j=0;j<c;j++)
+			{
+				double val = mat[i][j];
+				if(val<1e-13)
+				{
+					if(i==j)
+					{
+						new_mat[i][j] = 1e-13;
+					}
+					else
+					{
+						new_mat[i][j] = 1e-13;
+					}
+				}
+				else
+				{
+					new_mat[i][j] = val;
+				}
+			}
+		}
+		return new_mat;
+	}
+	
+	public static SimpleMatrix check(SimpleMatrix mat)
+	{
+		int r = mat.numRows();
+		int c = mat.numCols();
+		SimpleMatrix new_mat = new SimpleMatrix(r,c);
+		for(int i=0;i<r;i++)
+		{
+			for(int j=0;j<c;j++)
+			{
+				double val = mat.get(i,j);
+				if(val<1e-13)
+				{
+					if(i==j)
+					{
+						new_mat.set(i,j,1e-13);
+					}
+					else
+					{
+						new_mat.set(i,j,1e-13);
+					}
+				}
+				else
+				{
+					new_mat.set(i,j,val);
+				}
+			}
+		}
+		return new_mat;
+	}
+	
 	// Function to find
     // cross product of two vector array.
     public static double[] crossProduct(double vect_A[], double vect_B[])
