@@ -14,16 +14,17 @@ public class InitialAlignment {
 
 	// Single Step Self-Alignment
 	// Refer Inertial Navigation Systems Analysis by Kenneth R.Britting
-	public static SimpleMatrix process(ArrayList<ImuSensor> dataList, int m, double[] llh0) throws Exception {
+	public static SimpleMatrix process(ArrayList<ImuSensor> dataList, int m, double[] llh0,double acc_bias,double gyro_bias) throws Exception {
 		double[] avgAcc = new double[3];
 		double[] avgGyro = new double[3];
+		// Deterministic/Residual bias will be removed from the IMU data before averaging
 		for (int i = 0; i < m; i++) {
-			avgAcc[0] += dataList.get(i).getAccX();
-			avgAcc[1] += dataList.get(i).getAccY();
-			avgAcc[2] += dataList.get(i).getAccZ();
-			avgGyro[0] += dataList.get(i).getGyroX();
-			avgGyro[1] += dataList.get(i).getGyroY();
-			avgGyro[2] += dataList.get(i).getGyroZ();
+			avgAcc[0] += dataList.get(i).getAccX()-acc_bias;
+			avgAcc[1] += dataList.get(i).getAccY()-acc_bias;
+			avgAcc[2] += dataList.get(i).getAccZ()-acc_bias;
+			avgGyro[0] += dataList.get(i).getGyroX()-gyro_bias;
+			avgGyro[1] += dataList.get(i).getGyroY()-gyro_bias;
+			avgGyro[2] += dataList.get(i).getGyroZ()-gyro_bias;
 		}
 		IntStream.range(0, 3).forEach(i -> avgAcc[i] /= m);
 		IntStream.range(0, 3).forEach(i -> avgGyro[i] /= m);

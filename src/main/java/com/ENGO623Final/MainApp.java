@@ -37,45 +37,18 @@ public class MainApp {
 			// Deterministic/Residual Bias
 			double acc_bias = ImuParams.acc_bias(llh0[0], llh0[2]);
 			double gyro_bias = ImuParams.gyro_bias;
-
-			//Removing Deterministic/Residual bias from the IMU data
-			for (ImuSensor imuSensor : dataList) {
-				double[] acc = imuSensor.getAcc();
-				double[] gyro = imuSensor.getGyro();
-				for (int j = 0; j < 3; j++) {
-					acc[j] -= acc_bias;
-					gyro[j] -= gyro_bias;
-				}
-				imuSensor.setAcc(acc);
-				imuSensor.setGyro(gyro);
-
-			}
-
 			// Perform Self-Alignment assuming for first 65 seconds, the IMU remains
 			// static/stationary
-			SimpleMatrix dcm = InitialAlignment.process(dataList, sampleRate * 90, llh0);
-			
-			for (ImuSensor imuSensor : dataList) {
-				double[] acc = imuSensor.getAcc();
-				double[] gyro = imuSensor.getGyro();
-				for (int j = 0; j < 3; j++) {
-					acc[j] += acc_bias;
-					gyro[j] += gyro_bias;
-				}
-				imuSensor.setAcc(acc);
-				imuSensor.setGyro(gyro);
+			SimpleMatrix dcm = InitialAlignment.process(dataList, sampleRate * 65, llh0,acc_bias,gyro_bias);
 
-			}
-
-			// Initiate the Mechanization module
+			// Initiate the Error State Kalman Filter module
 			TreeMap<Long, State> stateList = KalmanFilter.process(dataList, dcm, llh0, sampleRate);
-			//Mechanization.process(dataList, dcm, llh0);
+			
 			// Plot Results
 			GraphPlotter.graphIMU(dataList);
 			GraphPlotter.graphLLH(stateList);
 			GraphPlotter.graphState(stateList, LatLonUtil.lla2ecef(llh0, false),
 					Rotation.dcm2euler(Matrix.matrix2Array(dcm)));
-			
 			State lastSt = stateList.lastEntry().getValue();
 			System.out.println("Final Latitude, Longitude and Altitude in degrees and meter");
 			System.out.println(Math.toDegrees(lastSt.getP()[0])+"   "+Math.toDegrees(lastSt.getP()[1])+"   "+lastSt.getP()[2]);

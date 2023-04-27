@@ -4,6 +4,8 @@ import com.ENGO623Final.Util.LatLonUtil;
 
 public class ImuParams {
 
+	// The IMU noise params require scaling, for the Err-State KF to work
+	// Most probably the params value are underestimated 
 	private static int fact = 20;
 	public final static double degPerHr_2_radPerS = (Math.PI / (180 * 60 * 60));
 	private final static double degPerSqrHr_2_radPerSqrS = (Math.PI / (180 * 60));

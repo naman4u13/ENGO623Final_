@@ -25,14 +25,14 @@ public class KalmanFilter {
 			int sampleRate) throws Exception {
 		double acc_bias = ImuParams.acc_bias(llh0[0], llh0[2]);
 		double acc_bias_instability = ImuParams.acc_bias_instability(llh0[0], llh0[2]);
-
+		// Turn-On biases are used initialize the bias states
 		State X = new State(llh0[0], llh0[1], llh0[2], 0, 0, 0, dcm0, acc_bias, acc_bias, acc_bias, ImuParams.gyro_bias,
 				ImuParams.gyro_bias, ImuParams.gyro_bias);
 		double attCov = Math.pow(Math.toRadians(5), 2);
 		// Initial state covariance for Acc Bias is assumed to be 10 micro-g, where g =
 		// 10ms^-2
 		double accBiasCov = Math.pow(10 * 1e-6 * 10, 2);
-		// Initial state covariance for Gyro Bias is assumed to be 1 deg/hr
+		// Initial state covariance for Gyro Bias is assumed to be 10 deg/hr
 		double gyroBiasCov = Math.pow(10 * ImuParams.degPerHr_2_radPerS, 2);
 		double[] p0 = new double[] { posCov, posCov, posCov, velCov, velCov, velCov, attCov, attCov, attCov, accBiasCov,
 				accBiasCov, accBiasCov, gyroBiasCov, gyroBiasCov, gyroBiasCov };
@@ -61,9 +61,11 @@ public class KalmanFilter {
 			double tau = time - prevTime;
 			// Total State Prediction or Mechanization
 			double[][] estInsObs = predictTotalState(X, imuSensor, tau);
+			// Obtaining transition matrix - phi and Process Covariance matrix - Qk
 			SimpleMatrix[] discParam = getDiscreteParams(X, estInsObs[0], estInsObs[1], tau, q);
+			// Predicting State Covariance forward
 			P = predictErrorState(P, discParam[0], discParam[1]);
-
+			// Update is performed every minute
 			if (i % (sampleRate * 60) == 0) {
 				P = update(X, P, llh0);
 				count++;
@@ -203,10 +205,10 @@ public class KalmanFilter {
 				.concatRows(dcm.scale(-1).concatColumns(zero, zero, zero))
 				.concatRows(zero.concatColumns(dcm, zero, zero)).concatRows(zero.concatColumns(zero, identity, zero))
 				.concatRows(zero.concatColumns(zero, zero, identity));
-
+		// PSD of noise param 'u' in eqn: x_dot = Fx + Gu
 		SimpleMatrix Q = new SimpleMatrix(12, 12);
 		IntStream.range(0, 12).forEach(i -> Q.set(i, i, q[i]));
-
+		// Van Loan Method of numerical estimation of phi and Qk
 		SimpleMatrix __A = ((F.scale(-1).concatColumns(G.mult(Q).mult(G.transpose())))
 				.concatRows(new SimpleMatrix(15, 15).concatColumns(F.transpose()))).scale(tau);
 		double[][] _A = Matrix.matrix2Array(__A);
